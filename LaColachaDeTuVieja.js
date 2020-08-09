@@ -172,8 +172,10 @@ var loop = function() {
     
     window.requestAnimationFrame(loop); //update frame
 }
-window.addEventListener("touchstart", controller.touchListener);
-window.addEventListener("touchend", controller.touchListener);
-window.addEventListener("keydown", controller.keyListener);
-window.addEventListener("keyup", controller.keyListener);
+ctx.addEventListener("touchstart", controller.touchListener);
+ctx.addEventListener("touchend", controller.touchListener);
+ctx.addEventListener("touchmove", controller.touchListener);
+ctx.addEventListener("touchcancel", controller.touchListener);
+ctx.addEventListener("keydown", controller.keyListener);
+ctx.addEventListener("keyup", controller.keyListener);
 window.requestAnimationFrame(loop); //draw first frame
