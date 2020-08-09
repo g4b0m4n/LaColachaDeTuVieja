@@ -11,13 +11,13 @@ class Head {
         this.y = ctx.canvas.height/2;
         this.w = 10;
         this.h = 20;
-        this.drx= 1;
-        this.dry= 1;
-        this.speed;
+        this.drx = 0;
+        this.dry = 0;
+        this.speed = 1;
     }
     
     colision(obj){
-        if (obj.w > this.x && obj.h > this.y |
+        if (obj.w > this.x && obj.h > this.y ||
         obj.x < this.w && obj.y < this.h) return true;
     }
 }
@@ -27,11 +27,11 @@ var head = new Head();
 class Segment {
 
     constructor(last) {
-        this.x =last.x+last.w+5;
-        this.y =last.y+last.h+5;
-        this.w =last.w;
-        this.h =last.h;
-        this.speed;
+        this.x = last.x+last.w+5;
+        this.y = last.y+last.h+5;
+        this.w = last.w;
+        this.h = last.h;
+        this.speed = 1;
     }
 }
 
@@ -43,6 +43,7 @@ class Mice {
         this.w = 10;
         this.h = 10;
         this.dr= 1;
+        this.speed = 3;
         console.log("cuick");
     }
 }
@@ -116,16 +117,17 @@ var loop = function() {
    ctx.fillRect(0,0,ctx.canvas.width ,ctx.canvas.height );
    ctx.fillStyle = "#000000";
    
-   random = Math.floor(Math.random())*11;
+   random = Math.floor(Math.random()*101) ;
+   console.log(random);
    if (random%2==0) {
-       mice.x+=mice.dr;
+       mice.x+=mice.speed;
        mice.y+=0;
   } else {
        mice.x+=0;
-       mice.y+=mice.dr;
-  } 
-   
-   if (wallCol(mice)) mice.dr*=-mice.dr;
+       mice.y+=mice.speed;
+  }
+   console.log(mice.x+"\n"+mice.y+"\n"+mice.dr+"\n"+mice.speed);
+   if (wallCol(mice)) mice.speed*=-mice.dr;
    
    ctx.fillRect(head.x, head.y, head.w, head.h);
 
@@ -135,30 +137,35 @@ var loop = function() {
    ctx.fillRect(mice.x, mice.y, mice.w, mice.h);
    
    if (controller.up){
-       head.drx=-1;
-       head.dry=0;
+       head.drx=0;
+       head.dry=-1;
        head.w=10;
        head.h=20;
    }else if (controller.down){
-       head.drx=1;
-       head.dry=0;
+       head.drx=0;
+       head.dry=1;
        head.w=10;
        head.h=20;
    }else if (controller.left) {
-       head.drx=0;
-       head.dry=-1;
+       head.drx=-1;
+       head.dry=0;
        head.w=20;
        head.h=10;
    }else if (controller.right){
-       head.drx=0;
-       head.dry=1;
+       head.drx=1;
+       head.dry=0;
        head.w=20;
        head.h=10;
-   }else if (head.dry>0){
-       head.drx=0;
-       head.dry=1;
    }
    
+    if (head.colision(mice)) {
+        score++;
+        mice = null;
+        mice = new Mice();
+        
+    }
+    if(wallCol(head)) head=null;
+    
     while (i < score){
        i++;
        segments[i]= new Segment(segments[i-1]);
@@ -168,15 +175,7 @@ var loop = function() {
         if (head.colision(segments[i])){
             segments.splice(i,1);
         }
-    } 
-    if (head.colision(mice)) {
-        score++;
-        mice = null;
-        mice = new Mice();
-        
-    }
-    if(wallCol(head)) head=null;
-    
+   }
     window.requestAnimationFrame(loop); //update frame
 }
 window.addEventListener("touchstart", controller.touchListener);
