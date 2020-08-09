@@ -1,6 +1,7 @@
 var ctx = document.querySelector("canvas").getContext("2d");
 var score = 0;
 var segments = [];
+var random;
 //ctx.canvas.width, ctx.canvas.height = 400;
 
 class Head {
@@ -10,12 +11,14 @@ class Head {
         this.y = ctx.canvas.height/2;
         this.w = 10;
         this.h = 20;
-        this.dr = false;
+        this.drx= 1;
+        this.dry= 1;
+        this.speed;
     }
     
     colision(obj){
-        if (obj.w > this.x & obj.h > this.y &
-        obj.x < this.w & obj.y <this.h) return true;
+        if (obj.w > this.x && obj.h > this.y |
+        obj.x < this.w && obj.y < this.h) return true;
     }
 }
 var head = new Head();
@@ -28,12 +31,8 @@ class Segment {
         this.y =last.y+last.h+5;
         this.w =last.w;
         this.h =last.h;
+        this.speed;
     }
-    /*
-    colision(head){
-        if (head.w > this.x & head.h > this.y &
-        head.x < this.w & head.y <this.h) return true;
-    }*/
 }
 
 class Mice {
@@ -43,21 +42,25 @@ class Mice {
         this.y = 1+Math.random()*200;
         this.w = 10;
         this.h = 10;
+        this.dr= 1;
+        console.log("cuick");
     }
 }
 var mice = new Mice();
 
 var wallCol = function(obj){
-    if(obj.w > 400-obj.x| obj.h > 400-obj.y){
+    if(obj.w > ctx.canvas.width-obj.x
+    || obj.h > ctx.canvas.height-obj.y){
         return true;
     }
-    if (obj.x < 0 | obj.y < 0){
+    else if (obj.x < 1 || obj.y < 1){
         return true;
     }
+    else return false;
 }
 
 var touchArea = function(cx, cy, x, y, w, h, dr, ev){
-    if (cx > x & cx < w & cy > y & cy < h){
+    if (cx > x && cx < w && cy > y && cy < h){
         dr = ev;
     }
 }
@@ -70,6 +73,7 @@ controller = {
     down: false, 
     
     touchListener: function(event) {
+        //event.preventDefault();
         var touch_state = event.type == "touchstart"?true:false;
         
         touchArea(event.touches.clientX, event.touches.clientY,
@@ -85,6 +89,7 @@ controller = {
         300,400, 300, 400, controller.right, touch_state);
     },
     keyListener: function(event) {
+        event.preventDefault();
         var key_state = event.type == "keydown"?true: false;
 
         switch (event.keyCode) {
@@ -111,47 +116,49 @@ var loop = function() {
    ctx.fillRect(0,0,ctx.canvas.width ,ctx.canvas.height );
    ctx.fillStyle = "#000000";
    
-   mice.x+=Math.random()+1;
+   random = Math.floor(Math.random())*11;
+   if (random%2==0) {
+       mice.x+=mice.dr;
+       mice.y+=0;
+  } else {
+       mice.x+=0;
+       mice.y+=mice.dr;
+  } 
    
-   if (wallCol(mice)){
-       mice.y*=-1;
-   }else if (wallCol(mice)){
-       mice.y*=1;
-   }else if (wallCol(mice)) {
-       mice.x*=-1;
-   }else if (wallCol(mice)){
-       mice.x*=1;
-   }
-
+   if (wallCol(mice)) mice.dr*=-mice.dr;
    
    ctx.fillRect(head.x, head.y, head.w, head.h);
-   
-   if(head.dr) head.x+=1;
-   else head.y+=1;
+
+   head.x+=head.drx;
+   head.y+=head.dry;
    
    ctx.fillRect(mice.x, mice.y, mice.w, mice.h);
    
    if (controller.up){
-       head.dr=false;
-       head.y*=-1;
+       head.drx=-1;
+       head.dry=0;
        head.w=10;
        head.h=20;
    }else if (controller.down){
-       head.dr=false;
-       head.y*=1;
+       head.drx=1;
+       head.dry=0;
        head.w=10;
        head.h=20;
    }else if (controller.left) {
-       head.dr=true;
-       head.x*=-1;
+       head.drx=0;
+       head.dry=-1;
        head.w=20;
        head.h=10;
    }else if (controller.right){
-       head.dr=true;
-       head.x*=1;
+       head.drx=0;
+       head.dry=1;
        head.w=20;
        head.h=10;
+   }else if (head.dry>0){
+       head.drx=0;
+       head.dry=1;
    }
+   
     while (i < score){
        i++;
        segments[i]= new Segment(segments[i-1]);
@@ -172,10 +179,10 @@ var loop = function() {
     
     window.requestAnimationFrame(loop); //update frame
 }
-ctx.addEventListener("touchstart", controller.touchListener);
-ctx.addEventListener("touchend", controller.touchListener);
-ctx.addEventListener("touchmove", controller.touchListener);
-ctx.addEventListener("touchcancel", controller.touchListener);
-ctx.addEventListener("keydown", controller.keyListener);
-ctx.addEventListener("keyup", controller.keyListener);
+window.addEventListener("touchstart", controller.touchListener);
+window.addEventListener("touchend", controller.touchListener);
+window.addEventListener("touchmove", controller.touchListener);
+window.addEventListener("touchcancel", controller.touchListener);
+window.addEventListener("keydown", controller.keyListener);
+window.addEventListener("keyup", controller.keyListener);
 window.requestAnimationFrame(loop); //draw first frame
